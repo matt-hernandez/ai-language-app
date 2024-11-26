@@ -5,9 +5,12 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import { darkTheme as theme } from "./src/theme";
 import type { LinksFunction } from "@remix-run/node";
-
-import "./tailwind.css";
+import { withEmotionCache } from "@emotion/react";
+import { useContext, type ReactNode } from "react";
+import ClientStyleContext from "./src/ClientStyleContext";
+import { unstable_useEnhancedEffect as useEnhancedEffect } from "@mui/material";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -22,14 +25,28 @@ export const links: LinksFunction = () => [
   },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+const Layout = withEmotionCache(({ children }: { children: ReactNode }, emotionCache) => {
+  const clientStyleData = useContext(ClientStyleContext);
+  useEnhancedEffect(() => {
+    emotionCache.sheet.container = document.head;
+    const tags = emotionCache.sheet.tags;
+    emotionCache.sheet.flush();
+    tags.forEach((tag) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (emotionCache.sheet as any)._insertTag(tag);
+    });
+    clientStyleData.reset();
+  }, []);
+  
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content={theme.palette.primary.main} />
         <Meta />
         <Links />
+        <meta name="emotion-insertion-point" content="" />
       </head>
       <body>
         {children}
@@ -38,8 +55,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </body>
     </html>
   );
-}
+});
 
 export default function App() {
-  return <Outlet />;
+  return <Layout><Outlet /></Layout>;
 }

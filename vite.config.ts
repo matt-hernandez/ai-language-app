@@ -21,4 +21,16 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  server: {
+    warmup: {
+      clientFiles: [
+        'app/entry.client.tsx',
+        'app/root.tsx',
+        'app/routes/**/*.tsx',
+      ]
+    }
+  },
+  optimizeDeps: {
+    include: ["@mui/material", "@mui/icons-material", "@emotion/react", "@emotion/styled"],
+  },
 });

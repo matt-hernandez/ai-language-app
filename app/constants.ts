@@ -1,0 +1,1 @@
+export const MAX_PHRASES_IN_REVIEW = 5;

@@ -4,13 +4,17 @@
  * For more information, see https://remix.run/file-conventions/entry.server
  */
 
-import { PassThrough } from "node:stream";
-
-import type { AppLoadContext, EntryContext } from "@remix-run/node";
+import { CacheProvider } from "@emotion/react";
+import createEmotionServer from "@emotion/server/create-instance";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import type { EntryContext } from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
+import { PassThrough } from "node:stream";
 import { renderToPipeableStream } from "react-dom/server";
+import createEmotionCache from "./src/createEmotionCache";
+import { darkTheme as theme } from "./src/theme";
 
 const ABORT_DELAY = 5_000;
 
@@ -19,10 +23,6 @@ export default function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  // This is ignored so we can keep it in the template for visibility.  Feel
-  // free to delete this parameter in your app if you're not using it!
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  loadContext: AppLoadContext
 ) {
   return isbot(request.headers.get("user-agent") || "")
     ? handleBotRequest(
@@ -45,20 +45,30 @@ function handleBotRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
+  const cache = createEmotionCache();
   return new Promise((resolve, reject) => {
     let shellRendered = false;
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-        abortDelay={ABORT_DELAY}
-      />,
+      <CacheProvider value={cache}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <RemixServer
+            context={remixContext}
+            url={request.url}
+            abortDelay={ABORT_DELAY}
+          />
+        </ThemeProvider>
+      </CacheProvider>,
       {
-        onAllReady() {
+        async onAllReady() {
           shellRendered = true;
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
+          const emotionServer = createEmotionServer(cache);
 
+          const bodyWithStyles = emotionServer.renderStylesToNodeStream();
+          body.write("<!DOCTYPE html>");
+          body.pipe(bodyWithStyles);
           responseHeaders.set("Content-Type", "text/html");
 
           resolve(
@@ -95,19 +105,32 @@ function handleBrowserRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
+  const cache = createEmotionCache();
+  
   return new Promise((resolve, reject) => {
     let shellRendered = false;
+
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-        abortDelay={ABORT_DELAY}
-      />,
+      <CacheProvider value={cache}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <RemixServer
+            context={remixContext}
+            url={request.url}
+            abortDelay={ABORT_DELAY}
+          />
+        </ThemeProvider>
+      </CacheProvider>,
       {
-        onShellReady() {
+        async onShellReady() {
           shellRendered = true;
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
+          const emotionServer = createEmotionServer(cache);
+          const bodyWithStyles = emotionServer.renderStylesToNodeStream();
+          
+          body.write("<!DOCTYPE html>");
+          body.pipe(bodyWithStyles);
 
           responseHeaders.set("Content-Type", "text/html");
 
