@@ -2,27 +2,25 @@ import { Button, CircularProgress, Container, styled, TextField, Typography } fr
 import { ActionFunctionArgs } from '@remix-run/node';
 import { Outlet, useFetcher, useNavigate } from '@remix-run/react';
 import { useEffect, useRef, useState } from 'react';
-import { makeImageGenerationPrompt, makePhrasesGenerationPrompt } from '~/make-prompt';
+import { makeImageGenerationPrompt } from '~/utils/make-prompt';
 import type { Phrase, PhraseRaw } from '~/types';
-import { getChatGPTImage, getChatGPTResponse } from '~/utils/chatgpt-api';
-import { db } from '~/utils/db.server';
+import { getChatGPTImage, getChatGPTResponse } from '~/server/chatgpt-api.server';
+import { db } from '~/server/db.server';
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
-  const userPrompt = formData.get('prompt');
-
-  const phrasesGenerationPrompt = makePhrasesGenerationPrompt(userPrompt as string);
+  const userPrompt: string = formData.get('prompt') as string;
 
   try {
-    const response = await getChatGPTResponse(phrasesGenerationPrompt);
-    const responseAsArray: PhraseRaw[] = JSON.parse(response.replace('```json', '').replace('```', ''));
+    const response_assistant = await getChatGPTResponse(userPrompt ?? "");
+    const responseAsArray: PhraseRaw[] = JSON.parse(response_assistant).phrases;
     const allResponses = await Promise.all(responseAsArray.map(async (phrase: PhraseRaw) => {
       const imageGenerationPrompt = makeImageGenerationPrompt(phrase.english);
-      const imageResponse = await getChatGPTImage(imageGenerationPrompt);
+      const image = await getChatGPTImage(imageGenerationPrompt) ?? "";
       return {
         spanish: phrase.spanish,
         english: phrase.english,
-        image: imageResponse ?? "",
+        image,
       };
     }));
 

@@ -2,7 +2,7 @@ import { Alert, Button, Divider, Paper, styled } from '@mui/material';
 import { Form, useActionData, useOutletContext } from '@remix-run/react';
 import type { Phrase } from '~/types';
 import PhraseInReview from '~/components/PhraseInReview';
-import { db } from '~/utils/db.server';
+import { db } from '~/server/db.server';
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { MAX_PHRASES_IN_REVIEW } from '~/constants';
 import { Fragment } from 'react/jsx-runtime';

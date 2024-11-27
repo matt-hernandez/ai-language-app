@@ -17,12 +17,30 @@ try {
   const hasApproved = remainingTables.some((table: { name: string }) => table.name === 'approved');
 
   if (!hasInReview && !hasApproved) {
-      console.log('Successfully dropped both tables!');
+    console.log('Successfully dropped both tables!');
+    // Recreate the tables
+    db.exec(`
+  CREATE TABLE IF NOT EXISTS in_review (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        spanish TEXT NOT NULL,
+        english TEXT NOT NULL,
+        image TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS approved (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        spanish TEXT NOT NULL,
+        english TEXT NOT NULL,
+        image TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
   } else {
-      console.log('Warning: Some tables still exist:', {
-          inReviewExists: hasInReview,
-          approvedExists: hasApproved
-      });
+    console.log('Warning: Some tables still exist:', {
+      inReviewExists: hasInReview,
+      approvedExists: hasApproved
+    });
   }
 } catch (error) {
   console.error('Error:', error);
