@@ -28,9 +28,11 @@ export default function PhraseInReview({ phrase, index }: { phrase: Phrase, inde
   const handleRerunPhrase = useCallback(async (phrase: Phrase, feedback: string, shouldRedoImage: boolean) => {
     try {
       setIsPhraseLoading(true);
+      if (shouldRedoImage) {
+        setIsImageLoading(true);
+      }
       const response = await fetch(`/api/rerun-phrase?phrase=${encodeURIComponent(phrase.english)}&feedback=${encodeURIComponent(feedback)}&redoImage=${shouldRedoImage}`);
       const data = await response.json();
-      console.log("MIH: rerun phrase data", data);
       const newPhrase = data.phrase;
       setCurrentPhrase(newPhrase);
       if (shouldRedoImage && data.image) {
@@ -40,6 +42,9 @@ export default function PhraseInReview({ phrase, index }: { phrase: Phrase, inde
       console.error('Failed to rerun phrase generation:', error);
     } finally {
       setIsPhraseLoading(false);
+      if (shouldRedoImage) {
+        setIsImageLoading(false);
+      }
     }
   }, []);
 

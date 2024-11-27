@@ -11,7 +11,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const prompt = retrySinglePhrase(english ?? "", spanish ?? "", feedback ?? "");
   const response = await getChatGPTResponse(prompt);
   const phrase = JSON.parse(response).phrases[0];
-  if (redoImage) {
+  if (redoImage && redoImage === "true") {
     const imagePrompt = makeImageGenerationPrompt(phrase.english);
     const image = await getChatGPTImage(imagePrompt) ?? "";
     return json({ phrase, image });

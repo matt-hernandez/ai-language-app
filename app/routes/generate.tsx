@@ -78,7 +78,7 @@ export default function Index() {
   return (
     <Container maxWidth="md">
       <Typography variant="h4" component="h1" gutterBottom>
-        ChatGPT Prompt Generator
+        Spanish Flashcard Generator
       </Typography>
       <form onSubmit={handleSubmit}>
         <StyledTextField

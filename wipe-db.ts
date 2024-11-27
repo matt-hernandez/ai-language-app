@@ -20,7 +20,7 @@ try {
     console.log('Successfully dropped both tables!');
     // Recreate the tables
     db.exec(`
-  CREATE TABLE IF NOT EXISTS in_review (
+      CREATE TABLE IF NOT EXISTS in_review (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         spanish TEXT NOT NULL,
         english TEXT NOT NULL,
@@ -36,6 +36,7 @@ try {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    console.log('Successfully recreated tables!');
   } else {
     console.log('Warning: Some tables still exist:', {
       inReviewExists: hasInReview,

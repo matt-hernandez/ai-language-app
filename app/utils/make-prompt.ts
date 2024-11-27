@@ -7,7 +7,8 @@ export const retrySinglePhrase = (english: string, spanish: string, feedback: st
 
     This is my feedback: "${feedback}"
 
-    Please generate a new version of the phrase in Spanish and English.
+    Please generate a new version of the phrase in Spanish and English. Attempt to preserve most of the original
+    phrases unless the feedback asks you to make a new phrase.
   `;
 };
 

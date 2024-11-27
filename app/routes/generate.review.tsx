@@ -7,8 +7,7 @@ import type { ActionFunctionArgs } from '@remix-run/node';
 import { MAX_PHRASES_IN_REVIEW } from '~/constants';
 import { Fragment } from 'react/jsx-runtime';
 import sharp from 'sharp';
-import { writeFileSync } from 'fs';
-import path from 'path';
+import CSVDownload from '~/components/CSVDownload';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -23,10 +22,7 @@ async function generateCSV() {
     `${phrase.english}|${phrase.spanish}|<img src="data:image/jpeg;base64,${phrase.image}" />`
   );
   const csvContent = rows.join('\n');
-
-  // Write to file in project root
-  const filePath = path.join(process.cwd(), 'approved-phrases.csv');
-  writeFileSync(filePath, csvContent, 'utf-8');
+  return csvContent;
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -47,12 +43,11 @@ export async function action({ request }: ActionFunctionArgs) {
       INSERT INTO approved (spanish, english, image)
       VALUES (@spanish, @english, @image)
       `).run({ spanish, english, image: resizedImage });
-  })
-  );
+  }));
 
   // Generate CSV after all insertions
-  await generateCSV();
-  return { success: true };
+  const csvContent = await generateCSV();
+  return { success: true, csvContent };
 }
 
 export default function Review() {
@@ -76,7 +71,12 @@ export default function Review() {
           </Form>
         </StyledPaper>
       )}
-      {actionData?.success && <Alert severity="success">Done!</Alert>}
+      {actionData?.success && (
+        <>
+          <Alert severity="success">Done!</Alert>
+          <CSVDownload csvContent={actionData.csvContent} />
+        </>
+      )}
     </>
   )
 }
