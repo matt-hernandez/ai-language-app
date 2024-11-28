@@ -10,7 +10,7 @@ export default function CSVDownload({ csvContent }: { csvContent: string }) {
         linkRef.current.click();
         hasClickedRef.current = true;
       }
-    }, 500);
+    }, 200);
   }, []);
 
   return <a style={{ display: "none" }} href={`data:text/csv;charset=utf-8,${csvContent}`} download="approved-phrases.csv" ref={linkRef}>Download CSV</a>;

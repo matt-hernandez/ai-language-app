@@ -25,7 +25,9 @@ export const makeImageGenerationPrompt = (prompt: string, feedback?: string) => 
     1. Read the user prompt and generate an image that is metaphorical or symbolic of their prompt.
     2. Make the image strange or funny to help someone remember the concept.
     3. Generate the image in a cartoon style.
-    4. Avoid lewd or offensive images.
+    4. Use cute animals in place of people.
+    5. Inanimated objects can be used as well.
+    6. Avoid lewd or offensive images.
 
     User prompt: ${prompt}
   `;

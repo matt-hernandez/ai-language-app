@@ -8,8 +8,7 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc",
-    "wipe-db": "node --loader ts-node/esm ./wipe-db.ts"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
@@ -28,7 +27,6 @@
   },
   "devDependencies": {
     "@remix-run/dev": "^2.15.0",
-    "@types/better-sqlite3": "^7.6.4",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",

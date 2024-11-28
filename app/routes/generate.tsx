@@ -1,11 +1,38 @@
 import { Button, CircularProgress, Container, styled, TextField, Typography } from '@mui/material';
-import { ActionFunctionArgs } from '@remix-run/node';
-import { Outlet, useFetcher, useNavigate } from '@remix-run/react';
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
+import { isRouteErrorResponse, Outlet, useFetcher, useNavigate, useRouteError } from '@remix-run/react';
 import { useEffect, useRef, useState } from 'react';
 import { makeImageGenerationPrompt } from '~/utils/make-prompt';
 import type { Phrase, PhraseRaw } from '~/types';
-import { getChatGPTImage, getChatGPTResponse } from '~/server/chatgpt-api.server';
-import { db } from '~/server/db.server';
+import { createPhraseAssistant, createPhraseThread, getAssistantId, getChatGPTImage, getChatGPTResponse, getThreadId, retrieveExistingPhraseAssistant, retrieveExistingPhraseThread } from '~/server/chatgpt-api.server';
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // check the cookies for an assistant id
+  let assistantId = request.headers.get('Cookie')?.split('; ').find(row => row.startsWith('assistantId='))?.split('=')[1];
+  if (!assistantId) {
+    await createPhraseAssistant();
+  } else {
+    await retrieveExistingPhraseAssistant(assistantId);
+  }
+  assistantId = await getAssistantId();
+
+  // check the cookies for a thread id
+  let threadId = request.headers.get('Cookie')?.split('; ').find(row => row.startsWith('threadId='))?.split('=')[1];
+  if (!threadId) {
+    await createPhraseThread();
+  } else {
+    await retrieveExistingPhraseThread(threadId);
+  }
+  threadId = await getThreadId();
+
+  return new Response(JSON.stringify({ assistantId, threadId }), {
+    headers: [
+      // set to longest max age possible
+      ['Set-Cookie', `assistantId=${assistantId}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 365}`],
+      ['Set-Cookie', `threadId=${threadId}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 365}`],
+    ],
+  });
+};
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
@@ -24,28 +51,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       };
     }));
 
-    // Insert responses into the in_review table
-    const stmt = db.prepare(`
-      INSERT INTO in_review (spanish, english, image)
-      VALUES (@spanish, @english, @image)
-    `);
-
-    const insertMany = db.transaction((responses) => {
-      for (const response of responses) {
-        stmt.run(response);
-      }
-    });
-
-    insertMany(allResponses);
-
     return { response: allResponses };
   } catch (error) {
     console.error('Error calling ChatGPT API:', error);
     return Response.json({ error: 'Failed to get response from ChatGPT' }, { status: 500 });
   }
 };
-
-
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(2),
@@ -71,7 +82,9 @@ export default function Index() {
   useEffect(() => {
     // redirect the user to the review page if the fetcher has data
     if (fetcher.data?.response) {
-      navigateRef.current('/generate/review');
+      setTimeout(() => {
+        navigateRef.current('/generate/review');
+      }, 200);
     }
   }, [fetcher.data?.response]);
 
@@ -97,6 +110,12 @@ export default function Index() {
           type="submit"
           disabled={fetcher.state === 'submitting'}
           aria-label="Generate Response"
+          onClick={() => {
+            // Only navigate if the user is not already on this page
+            if (window.location.pathname !== '/generate') {
+              navigateRef.current('/generate');
+            }
+          }}
         >
           {fetcher.state === 'submitting' ? (
             <>
@@ -113,4 +132,30 @@ export default function Index() {
       )}
     </Container>
   );
+}
+
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div>
+        <h1>
+          {error.status} {error.statusText}
+        </h1>
+        <p>{error.data}</p>
+      </div>
+    );
+  } else if (error instanceof Error) {
+    return (
+      <div>
+        <h1>Error</h1>
+        <p>{error.message}</p>
+        <p>The stack trace is:</p>
+        <pre>{error.stack}</pre>
+      </div>
+    );
+  } else {
+    return <h1>Unknown Error</h1>;
+  }
 }

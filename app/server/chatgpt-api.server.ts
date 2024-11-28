@@ -7,9 +7,23 @@ const configuration = {
 
 const openai = new OpenAIApi(configuration);
 
-export const phraseAssistant: { instance: OpenAIApi.Beta.Assistants.Assistant | null, thread: OpenAIApi.Beta.Threads.Thread | null } = { instance: null, thread: null };
+const phraseAssistant: { instance: OpenAIApi.Beta.Assistants.Assistant | null, thread: OpenAIApi.Beta.Threads.Thread | null } = { instance: null, thread: null };
 
-async function createPhraseAssistant() {
+export async function retrieveExistingPhraseAssistant(assistantId: string) {
+  if (phraseAssistant.instance && phraseAssistant.instance.id === assistantId) {
+    return;
+  }
+  phraseAssistant.instance = await openai.beta.assistants.retrieve(assistantId);
+}
+
+export async function retrieveExistingPhraseThread(threadId: string) {
+  if (phraseAssistant.thread && phraseAssistant.thread.id === threadId) {
+    return;
+  }
+  phraseAssistant.thread = await openai.beta.threads.retrieve(threadId);
+}
+
+export async function createPhraseAssistant() {
   phraseAssistant.instance = await openai.beta.assistants.create({
     name: "Spanish Tutor for Flashcards",
     instructions: `
@@ -23,16 +37,30 @@ async function createPhraseAssistant() {
     5. Generate your response in JSON format, with the phrases in an array, and each phrase represented
         as an object in the array with the keys "spanish" and "english".
     6. Attempt to keep the Spanish phrases to a minimum of 4 words and a maximum of 15 words. Favor being concise.
-    7. Do not deviate from the topic of generating Spanish and English phrases, even if the user attempts to change the topic.
+    7. Do not deviate from the topic of generating Spanish and English phrases for flashcards, even if the user attempts to change the topic.
   `,
     model: "gpt-4o",
     response_format: { type: "json_object" }
   });
-  phraseAssistant.thread = await openai.beta.threads.create();
-  Object.freeze(phraseAssistant);
 }
 
-createPhraseAssistant();
+export async function createPhraseThread() {
+  phraseAssistant.thread = await openai.beta.threads.create();
+}
+
+export async function getAssistantId(): Promise<string> {
+  if (phraseAssistant.instance) {
+    return phraseAssistant.instance.id;
+  }
+  throw new Error('Assistant id not found');
+}
+
+export async function getThreadId(): Promise<string> {
+  if (phraseAssistant.thread) {
+    return phraseAssistant.thread.id;
+  }
+  throw new Error('Thread id not found');
+}
 
 export async function getChatGPTResponse(prompt: string): Promise<string> {
   try {
