@@ -49,7 +49,6 @@ export default function Review() {
   const data = outletContext?.data;
   const [phrases, setPhrases] = useState(data);
   const actionData = useActionData<typeof action>();
-  console.log(phrases);
   if (actionData?.success && phrases.length > 0) {
     setPhrases([]);
   }

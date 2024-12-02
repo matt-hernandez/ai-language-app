@@ -1,16 +1,38 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material";
 import type { Phrase } from "~/types";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function PhraseInReview({ phrase, index }: { phrase: Phrase, index: number }) {
   const [currentImage, setCurrentImage] = useState(phrase.image);
   const [isImageFeedbackModalOpen, setIsImageFeedbackModalOpen] = useState(false);
   const [imageFeedback, setImageFeedback] = useState("");
+  const imageFeedbackInputRef = useRef<HTMLInputElement>(null);
   const [currentPhrase, setCurrentPhrase] = useState(phrase);
   const [isPhraseFeedbackModalOpen, setIsPhraseFeedbackModalOpen] = useState(false);
   const [phraseFeedback, setPhraseFeedback] = useState("");
+  const phraseFeedbackInputRef = useRef<HTMLInputElement>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isPhraseLoading, setIsPhraseLoading] = useState(false);
+
+  useEffect(() => {
+    if (isPhraseFeedbackModalOpen) {
+      setTimeout(() => {
+        if (phraseFeedbackInputRef.current) {
+          phraseFeedbackInputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [isPhraseFeedbackModalOpen]);
+
+  useEffect(() => {
+    if (isImageFeedbackModalOpen) {
+      setTimeout(() => {
+        if (imageFeedbackInputRef.current) {
+          imageFeedbackInputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [isImageFeedbackModalOpen]);
 
   const handleRerunImage = useCallback(async (phrase: Phrase, feedback: string) => {
     try {
@@ -22,6 +44,7 @@ export default function PhraseInReview({ phrase, index }: { phrase: Phrase, inde
       console.error('Failed to rerun image generation:', error);
     } finally {
       setIsImageLoading(false);
+      setImageFeedback("");
     }
   }, []);
 
@@ -44,7 +67,9 @@ export default function PhraseInReview({ phrase, index }: { phrase: Phrase, inde
       setIsPhraseLoading(false);
       if (shouldRedoImage) {
         setIsImageLoading(false);
+        setImageFeedback("");
       }
+      setPhraseFeedback("");
     }
   }, []);
 
@@ -56,9 +81,10 @@ export default function PhraseInReview({ phrase, index }: { phrase: Phrase, inde
         <DialogTitle>Revise Phrase</DialogTitle>
         <DialogContent>
           <TextField
-            label="Feedback"
+            label="Feedback (optional)"
             multiline
             rows={4}
+            inputRef={phraseFeedbackInputRef}
             placeholder="What's wrong with this phrase?"
             sx={{ width: "400px", mt: 1 }}
             onChange={(e) => {
@@ -87,11 +113,12 @@ export default function PhraseInReview({ phrase, index }: { phrase: Phrase, inde
         </DialogContent>
         <DialogContent>
           <TextField
-            label="Feedback"
+            label="Feedback (optional)"
             multiline
             rows={4}
             placeholder="What's wrong with this image?"
             sx={{ width: "400px", mt: 1 }}
+            inputRef={imageFeedbackInputRef}
             onChange={(e) => {
               setImageFeedback(e.target.value);
             }}
