@@ -8,28 +8,48 @@ export const retrySinglePhrase = (english: string, spanish: string, feedback: st
     This is my feedback: "${feedback}"
 
     Please generate a new version of the phrase in Spanish and English. Attempt to preserve most of the original
-    phrases unless the feedback asks you to make a new phrase.
+    meaning of the phrase, unless the feedback suggests you make a new phrase entirely.
+
+    Please respond in JSON format. The format should be as follows:
+      {
+        "phrases": [
+          {
+            "spanish": "the Spanish phrase",
+            "english": "the English phrase",
+            "imagePrompt": "the image prompt"
+          }
+        ]
+      }
+
+    The "phrases" array should contain only one object, which will be the newly revised phrase. That object should
+    have the same keys as the original phrase: "english", "spanish", and "imagePrompt".
   `;
 };
 
-export const makeImageGenerationPrompt = (prompt: string, feedback?: string) => {
+export const retryImageGenerationPrompt = (imagePrompt: string, feedback?: string) => {
   return `
-    Your job is to read a user prompt and generate text-free images from that prompt that are note-worthy to help
-    someone remember a concept.
-    ${feedback ? `In this case, this user has already asked you for an image before and they were not satisfied with the result.
-      Try to generate an image that addresses the feedback.
-
-      Here is their feedback: "${feedback}"` : ''}
+    I'm not quite satisfied with the image that was generated from DALL-E 3 using the following imagePrompt: "${imagePrompt}".
     
-    Please follow these guidelines:
-    1. Read the user prompt and generate an image that is metaphorical or symbolic of their prompt.
-    2. Make the image strange or funny to help someone remember the concept.
-    3. Generate the image in a cartoon style.
-    4. Use cute animals in place of people.
-    5. Inanimated objects can be used as well.
-    6. Avoid lewd or offensive images.
-    7. Do not include text in the image at all. No words whatsoever.
+    Please generate a new version of the imagePrompt that addresses this feedback I have: "${feedback}"
 
-    User prompt: ${prompt}
+    Please respond in JSON format. The format should be as follows:
+      {
+        "phrases": [
+          {
+            "imagePrompt": "the image prompt"
+          }
+        ]
+      }
+
+    The "phrases" array should contain only one object, and that object should have the "imagePrompt" key with the
+    new value.
+
+    I hope DALL-E 3 can generate a better image this time.
+  `;
+};
+
+export const makeImageGenerationPrompt = (prompt: string) => {
+  return `
+    I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: ${prompt}
   `;
 };

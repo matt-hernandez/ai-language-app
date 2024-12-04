@@ -39,8 +39,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const userPrompt: string = formData.get('prompt') as string;
 
   try {
-    const response_assistant = await getChatGPTResponse(userPrompt ?? "");
-    const responseAsArray: PhraseRaw[] = JSON.parse(response_assistant).phrases;
+    const response = await getChatGPTResponse(userPrompt ?? "");
+    const responseAsArray: PhraseRaw[] = JSON.parse(response).phrases;
     const allResponses: PhraseForReview[] = await Promise.all(responseAsArray.map(async (phrase: PhraseRaw) => {
       const imageGenerationPrompt = makeImageGenerationPrompt(phrase.imagePrompt);
       const image = await getChatGPTImage(imageGenerationPrompt) ?? "";

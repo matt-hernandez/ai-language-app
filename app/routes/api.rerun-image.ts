@@ -1,12 +1,16 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
-import { makeImageGenerationPrompt } from "~/utils/make-prompt";
-import { getChatGPTImage } from "~/server/chatgpt-api.server";
+import { makeImageGenerationPrompt, retryImageGenerationPrompt } from "~/utils/make-prompt";
+import { getChatGPTImage, getChatGPTResponse } from "~/server/chatgpt-api.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const phrase = url.searchParams.get('phrase');
   const feedback = url.searchParams.get('feedback');
-  const imageGenerationPrompt = makeImageGenerationPrompt(phrase ?? "", feedback ?? "");
+  const revisedImagePrompt = retryImageGenerationPrompt(phrase ?? "", feedback ?? "");
+  const response = await getChatGPTResponse(revisedImagePrompt);
+  const responseAsArray = JSON.parse(response).phrases;
+  const imagePrompt = responseAsArray[0].imagePrompt;
+  const imageGenerationPrompt = makeImageGenerationPrompt(imagePrompt);
   const imageResponse = await getChatGPTImage(imageGenerationPrompt);
-  return json({ image: imageResponse ?? "" });
+  return json({ image: imageResponse ?? "", imagePrompt: imagePrompt });
 }

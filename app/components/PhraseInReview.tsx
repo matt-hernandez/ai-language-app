@@ -42,6 +42,7 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
       const response = await fetch(`/api/rerun-image?phrase=${encodeURIComponent(phrase.imagePrompt)}&feedback=${encodeURIComponent(feedback)}`);
       const data = await response.json();
       setCurrentImage(data.image);
+      setCurrentImagePrompt(data.imagePrompt);
     } catch (error) {
       console.error('Failed to rerun image generation:', error);
     } finally {
@@ -112,7 +113,7 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
         <DialogTitle>Revise Image</DialogTitle>
         <DialogContent sx={{ mt: -2, mb: -2, pb: 0, fontSize: "14px", width: "446px" }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: "100%" }}>
-            <Typography sx={{ fontSize: "14px", pr: 2 }}>*Images do not have history, so provide feedback that is generic rather than referencing the current image.</Typography>
+            <Typography sx={{ fontSize: "14px", pr: 2 }}>*OpenAI does not remember images, so provide feedback that is related to the prompt rather than something in the current image.</Typography>
             <img src={`data:image/jpeg;base64,${currentImage}`} width={80} height={80} alt={phrase.english} />
           </Stack>
           <Typography sx={{ fontSize: "14px", mt: 2, mb: 1, fontWeight: "bold" }}>Prompt: {currentImagePrompt}</Typography>
@@ -196,11 +197,11 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
                 width={250}
                 height={250}
                 alt={phrase.english}
-                style={{ opacity: isImageLoading ? 0.5 : 1 }}
+                style={{ opacity: isImageLoading ? 0.4 : 1 }}
               />
               {!isImageLoading && <ZoomOutMap color="action" sx={{ position: "absolute", top: "10px", right: "10px", width: 30, height: 30, opacity: 0, fill: "black" }} />}
             </Button>
-            <Stack direction="row" justifyContent="flex-start" sx={{ width: "250px" }}>
+            <Stack direction="row" justifyContent="flex-start" sx={{ width: "250px", opacity: isImageLoading ? 0.4 : 1 }}>
               <Typography sx={{ fontSize: "14px", mt: -1 }}>Prompt: {currentImagePrompt}</Typography>
             </Stack>
             <input type="hidden" name={`${index}-image`} value={currentImage} />
