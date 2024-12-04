@@ -3,7 +3,7 @@ import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { isRouteErrorResponse, Outlet, useFetcher, useNavigate, useRouteError } from '@remix-run/react';
 import { useEffect, useRef, useState } from 'react';
 import { makeImageGenerationPrompt } from '~/utils/make-prompt';
-import type { Phrase, PhraseRaw } from '~/types';
+import type { PhraseForReview, PhraseRaw } from '~/types';
 import { createPhraseAssistant, createPhraseThread, getAssistantId, getChatGPTImage, getChatGPTResponse, getThreadId, retrieveExistingPhraseAssistant, retrieveExistingPhraseThread } from '~/server/chatgpt-api.server';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -41,13 +41,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const response_assistant = await getChatGPTResponse(userPrompt ?? "");
     const responseAsArray: PhraseRaw[] = JSON.parse(response_assistant).phrases;
-    const allResponses = await Promise.all(responseAsArray.map(async (phrase: PhraseRaw) => {
-      const imageGenerationPrompt = makeImageGenerationPrompt(phrase.english);
+    const allResponses: PhraseForReview[] = await Promise.all(responseAsArray.map(async (phrase: PhraseRaw) => {
+      const imageGenerationPrompt = makeImageGenerationPrompt(phrase.imagePrompt);
       const image = await getChatGPTImage(imageGenerationPrompt) ?? "";
       return {
         spanish: phrase.spanish,
         english: phrase.english,
         image,
+        imagePrompt: phrase.imagePrompt,
       };
     }));
 
@@ -68,7 +69,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
 
 export default function Index() {
   const [userPrompt, setUserPrompt] = useState('');
-  const fetcher = useFetcher<{ response: Phrase[] }>();
+  const fetcher = useFetcher<{ response: PhraseForReview[] }>();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();

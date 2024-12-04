@@ -14,7 +14,7 @@ export const retrySinglePhrase = (english: string, spanish: string, feedback: st
 
 export const makeImageGenerationPrompt = (prompt: string, feedback?: string) => {
   return `
-    Your job is to read a user prompt and generate images from that prompt that are note-worthy to help
+    Your job is to read a user prompt and generate text-free images from that prompt that are note-worthy to help
     someone remember a concept.
     ${feedback ? `In this case, this user has already asked you for an image before and they were not satisfied with the result.
       Try to generate an image that addresses the feedback.
@@ -28,6 +28,7 @@ export const makeImageGenerationPrompt = (prompt: string, feedback?: string) => 
     4. Use cute animals in place of people.
     5. Inanimated objects can be used as well.
     6. Avoid lewd or offensive images.
+    7. Do not include text in the image at all. No words whatsoever.
 
     User prompt: ${prompt}
   `;

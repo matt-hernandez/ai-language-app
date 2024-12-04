@@ -1,6 +1,6 @@
 import { Alert, Button, Divider, Paper, styled } from '@mui/material';
 import { Form, useActionData, useOutletContext } from '@remix-run/react';
-import type { Phrase } from '~/types';
+import type { PhraseSaved, PhraseForReview } from '~/types';
 import PhraseInReview from '~/components/PhraseInReview';
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { MAX_PHRASES_IN_REVIEW } from '~/constants';
@@ -13,7 +13,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(3),
 }));
 
-async function generateCSV(phrases: Phrase[]) {
+async function generateCSV(phrases: PhraseSaved[]) {
   // Create CSV content without headers
   const rows = phrases.map(phrase =>
     `${phrase.english}|${phrase.spanish}|<img src="data:image/jpeg;base64,${phrase.image}" />`
@@ -45,7 +45,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Review() {
-  const outletContext = useOutletContext<{ data: Phrase[] }>();
+  const outletContext = useOutletContext<{ data: PhraseForReview[] }>();
   const data = outletContext?.data;
   const [phrases, setPhrases] = useState(data);
   const actionData = useActionData<typeof action>();
@@ -58,9 +58,9 @@ export default function Review() {
       {phrases && !actionData?.success && (
         <StyledPaper>
           <Form method="post">
-            {data.map((phrase: Phrase, index: number) => (
-              <Fragment key={phrase.english}>
-                <PhraseInReview phrase={phrase} index={index} />
+            {data.map((phrase: PhraseForReview, index: number) => (
+              <Fragment key={`${phrase.english}-${phrase.spanish}`}>
+                <PhraseInReview phrase={phrase} image={phrase.image} index={index} />
                 <Divider sx={{ my: 2 }} />
               </Fragment>
             ))}

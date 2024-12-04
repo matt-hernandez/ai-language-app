@@ -35,7 +35,11 @@ export async function createPhraseAssistant() {
     3. Avoid making the Spanish too formal or polite. This person is interested in everyday language.
     4. Generate ${MAX_PHRASES_IN_REVIEW} phrases.
     5. Generate your response in JSON format, with the phrases in an array, and each phrase represented
-        as an object in the array with the keys "spanish" and "english".
+        as an object in the array with the keys "spanish" and "english". There should also be a third key
+        called "imagePrompt." For this key, translate the Spanish phrase back into English, but do so in a
+        very literal, word-for-word way. For example, if the Spanish phrase is "Anda con el Jesús en la boca,"
+        the imagePrompt should be something along the lines of "a person walking with Jesus in their mouth,"
+        instead of the more accurate, "He's very worried."
     6. Attempt to keep the Spanish phrases to a minimum of 4 words and a maximum of 15 words. Favor being concise.
     7. Do not deviate from the topic of generating Spanish and English phrases for flashcards, even if the user attempts to change the topic.
   `,

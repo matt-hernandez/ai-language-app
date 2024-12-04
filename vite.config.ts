@@ -21,6 +21,14 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  resolve: {
+    alias: [
+      {
+        find: /^@mui\/icons-material\/(.*)/,
+        replacement: "@mui/icons-material/esm/$1",
+      }
+    ],
+  },
   server: {
     warmup: {
       clientFiles: [
@@ -32,5 +40,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ["@mui/material", "@mui/icons-material", "@emotion/react", "@emotion/styled"],
+    force: true,
   },
 });
