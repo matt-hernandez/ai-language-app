@@ -1,18 +1,18 @@
-import { json, LoaderFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@remix-run/node";
 import { makeImageGenerationPrompt, retrySinglePhrase } from "~/utils/make-prompt";
 import { getChatGPTImage, getChatGPTResponse } from "~/server/chatgpt-api.server";
 import { PhraseRaw } from "~/types";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url);
-  const english = url.searchParams.get('english');
-  const spanish = url.searchParams.get('spanish');
-  const feedback = url.searchParams.get('feedback');
-  const redoImage = url.searchParams.get('redoImage');
+export async function action({ request }: ActionFunctionArgs) {
+  const data = await request.json();
+  const english = data.english;
+  const spanish = data.spanish;
+  const feedback = data.feedback;
+  const redoImage = data.redoImage;
   const prompt = retrySinglePhrase(english ?? "", spanish ?? "", feedback ?? "");
   const response = await getChatGPTResponse(prompt);
   const phrase: PhraseRaw = JSON.parse(response).phrases[0];
-  if (redoImage && redoImage === "true") {
+  if (redoImage) {
     const imagePrompt = makeImageGenerationPrompt(phrase.imagePrompt);
     const image = await getChatGPTImage(imagePrompt) ?? "";
     return json({ phrase, image });

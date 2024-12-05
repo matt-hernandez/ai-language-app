@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export default function CSVDownload({ csvContent }: { csvContent: string }) {
+export default function TextDownload({ csvContent }: { csvContent: string }) {
   const linkRef = useRef<HTMLAnchorElement>(null);
   const hasClickedRef = useRef(false);
 
@@ -13,5 +13,5 @@ export default function CSVDownload({ csvContent }: { csvContent: string }) {
     }, 200);
   }, []);
 
-  return <a style={{ display: "none" }} href={`data:text/csv;charset=utf-8,${csvContent}`} download="approved-phrases.csv" ref={linkRef}>Download CSV</a>;
+  return <a style={{ display: "none" }} href={`data:text/csv;charset=utf-8,${csvContent}`} download="approved-phrases.txt" ref={linkRef}>Download Text File</a>;
 }

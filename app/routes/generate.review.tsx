@@ -6,20 +6,20 @@ import type { ActionFunctionArgs } from '@remix-run/node';
 import { MAX_PHRASES_IN_REVIEW } from '~/constants';
 import { Fragment, useState } from 'react';
 import sharp from 'sharp';
-import CSVDownload from '~/components/CSVDownload';
+import TextDownload from '~/components/TextDownload';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   marginTop: theme.spacing(3),
 }));
 
-async function generateCSV(phrases: PhraseSaved[]) {
-  // Create CSV content without headers
+async function generatePipeSeparatedValues(phrases: PhraseSaved[]) {
+  // Create text content without headers
   const rows = phrases.map(phrase =>
     `${phrase.english}|${phrase.spanish}|<img src="data:image/jpeg;base64,${phrase.image}" />`
   );
-  const csvContent = rows.join('\n');
-  return csvContent;
+  const pipeSeparatedContent = rows.join('\n');
+  return pipeSeparatedContent;
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -40,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }));
 
   // Generate CSV after all insertions
-  const csvContent = await generateCSV(phrases);
+  const csvContent = await generatePipeSeparatedValues(phrases);
   return { success: true, csvContent };
 }
 
@@ -73,7 +73,7 @@ export default function Review() {
       {actionData?.success && (
         <>
           <Alert severity="success">Done!</Alert>
-          <CSVDownload csvContent={actionData.csvContent} />
+          <TextDownload csvContent={actionData.csvContent} />
         </>
       )}
     </>

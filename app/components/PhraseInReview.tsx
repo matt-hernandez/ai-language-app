@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, TextField, Typography } from "@mui/material";
 import ZoomOutMap from "@mui/icons-material/ZoomOutMap";
 import type { PhraseRaw } from "~/types";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -36,10 +36,13 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
     }
   }, [isImageFeedbackModalOpen]);
 
-  const handleRerunImage = useCallback(async (phrase: PhraseRaw, feedback: string) => {
+  const handleRerunImage = useCallback(async (imagePrompt: string, feedback: string) => {
     try {
       setIsImageLoading(true);
-      const response = await fetch(`/api/rerun-image?phrase=${encodeURIComponent(phrase.imagePrompt)}&feedback=${encodeURIComponent(feedback)}`);
+      const response = await fetch(`/api/rerun-image`, {
+        method: "POST",
+        body: JSON.stringify({ prompt: imagePrompt, feedback })
+      });
       const data = await response.json();
       setCurrentImage(data.image);
       setCurrentImagePrompt(data.imagePrompt);
@@ -57,7 +60,10 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
       if (shouldRedoImage) {
         setIsImageLoading(true);
       }
-      const response = await fetch(`/api/rerun-phrase?english=${encodeURIComponent(phrase.english)}&spanish=${encodeURIComponent(phrase.spanish)}&feedback=${encodeURIComponent(feedback)}&redoImage=${shouldRedoImage}`);
+      const response = await fetch(`/api/rerun-phrase`, {
+        method: "POST",
+        body: JSON.stringify({ english: phrase.english, spanish: phrase.spanish, feedback, redoImage: shouldRedoImage })
+      });
       const data: { phrase: PhraseRaw, image: string } = await response.json();
       const newPhrase = data.phrase;
       setCurrentPhrase(newPhrase);
@@ -84,24 +90,31 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
       }}>
         <DialogTitle>Revise Phrase</DialogTitle>
         <DialogContent>
+          <Button variant="outlined" onClick={() => {
+            handleRerunPhrase(currentPhrase, "I don't like this phrase. Please create a new one.", true);
+            setIsPhraseFeedbackModalOpen(false);
+          }}>
+            Create New Phrase
+          </Button>
+          <Divider sx={{ my: 1 }}>OR</Divider>
           <TextField
             label="Feedback (optional)"
             multiline
             rows={4}
             inputRef={phraseFeedbackInputRef}
             placeholder="What's wrong with this phrase?"
-            sx={{ width: "400px", mt: 1 }}
+            sx={{ width: "450px", mt: 1 }}
             onChange={(e) => {
               setPhraseFeedback(e.target.value);
             }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
+        <DialogActions sx={{ px: 3 }}>
+          <Button variant="outlined" onClick={() => {
             handleRerunPhrase(currentPhrase, phraseFeedback, false);
             setIsPhraseFeedbackModalOpen(false);
           }}>Submit</Button>
-          <Button onClick={() => {
+          <Button variant="outlined" onClick={() => {
             handleRerunPhrase(currentPhrase, phraseFeedback, true);
             setIsPhraseFeedbackModalOpen(false);
           }}>Submit & Redo Image</Button>
@@ -123,17 +136,18 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
             label="Feedback (optional)"
             multiline
             rows={4}
-            placeholder="What's wrong with this image?"
-            sx={{ width: "400px", mt: 1 }}
+            placeholder="What's wrong with this prompt?"
+            sx={{ width: "450px", mt: 1 }}
             inputRef={imageFeedbackInputRef}
             onChange={(e) => {
               setImageFeedback(e.target.value);
             }}
+            helperText="Leave blank to keep the same prompt and just redo the image."
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            handleRerunImage(currentPhrase, imageFeedback);
+          <Button variant="outlined" onClick={() => {
+            handleRerunImage(currentImagePrompt, imageFeedback);
             setIsImageFeedbackModalOpen(false);
           }}>Submit</Button>
         </DialogActions>
