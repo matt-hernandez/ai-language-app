@@ -37,9 +37,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const userPrompt: string = formData.get('prompt') as string;
-
+  let response
   try {
-    const response = await getChatGPTResponse(userPrompt ?? "");
+    response = await getChatGPTResponse(userPrompt ?? "");
     const responseAsArray: PhraseRaw[] = JSON.parse(response).phrases;
     const allResponses: PhraseForReview[] = await Promise.all(responseAsArray.map(async (phrase: PhraseRaw) => {
       const imageGenerationPrompt = makeImageGenerationPrompt(phrase.imagePrompt);
@@ -55,6 +55,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return { response: allResponses };
   } catch (error) {
     console.error('Error calling ChatGPT API:', error);
+    console.error("Response was:", response);
     return Response.json({ error: 'Failed to get response from ChatGPT' }, { status: 500 });
   }
 };
