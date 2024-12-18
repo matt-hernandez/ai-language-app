@@ -91,7 +91,7 @@ export default function PhraseInReview({ phrase, image, index }: { phrase: Phras
         <DialogTitle>Revise Phrase</DialogTitle>
         <DialogContent>
           <Button variant="outlined" onClick={() => {
-            handleRerunPhrase(currentPhrase, "I don't like this phrase. Please create a new one.", true);
+            handleRerunPhrase(currentPhrase, "I don't like this phrase. Please create a completely different one, but make sure it's still related to the topic.", true);
             setIsPhraseFeedbackModalOpen(false);
           }}>
             Create New Phrase
